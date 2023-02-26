@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('hello/', views.hello),
     path('', views.index),
-    path('vacancies/', views.index_vacancies),
-    path('vacancies/<int:vacancy_id>/', views.get_vacancies_from_id),
+    path('vacancies/', views.VacancyView.as_view()),  # к вакансии привязываем класс VacancyView и юзаем метод as_view()
+    # необходимо элемент назвать как pk или slug
+    path('vacancies/<int:pk>/', views.VacancyDetailView.as_view()),  # так же, как и в VacancyView
 ]
