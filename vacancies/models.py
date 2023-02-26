@@ -3,6 +3,7 @@ from django.db import models
 
 class Vacancy(models.Model):
     # список tuple - где первое значение лежит в базе, второе отображается в админке приложения
+    # STATUS - это enum
     STATUS = [
         ('draft', 'Черновик'),
         ('open', 'Открытая'),
