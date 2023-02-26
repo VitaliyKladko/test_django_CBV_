@@ -33,3 +33,18 @@ def index_vacancies(request):
         # safe=False позволяет "скушать" JsonResponse словарь, говоря, что ничего не сломается при серриализации и
         # отключи все проверки при переводе в json
         return JsonResponse(response, safe=False)
+
+
+def get_vacancies_from_id(request, vacancy_id):
+    if request.method == 'GET':
+        try:
+            vacancy = Vacancy.objects.get(pk=vacancy_id)
+        except Vacancy.DoesNotExist:
+            return JsonResponse({
+                'error': 'Not found'
+            }, status=404)
+
+        return JsonResponse({
+            'id': vacancy.id,
+            'text': vacancy.text,
+        })
