@@ -22,6 +22,13 @@ def index_vacancies(request):
     if request.method == 'GET':
         vacancies = Vacancy.objects.all()
 
+        # реализуем поиск по вакансии по ее полному тексту (просто как пример)
+        # get вызываем у атрибута .GET так как если этого не сделать, то падаем с ошибкой MultiValueDictKeyError
+        # MultiValueDictKeyError - не передали text в квери-параметрах
+        search_text = request.GET.get('text', None)
+        if search_text is not None:
+            vacancies = vacancies.filter(text=search_text)
+
         response = []
         for vacancy in vacancies:
             response.append(
