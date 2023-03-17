@@ -14,14 +14,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf.urls.static import static
+
+from test_django_1 import settings
 from vacancies import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('hello/', views.hello),
     path('', views.index),
-    path('vacancies/', views.VacancyView.as_view()),  # к вакансии привязываем класс VacancyView и юзаем метод as_view()
-    # необходимо элемент назвать как pk или slug
-    path('vacancies/<int:pk>/', views.VacancyDetailView.as_view()),  # так же, как и в VacancyView
+    path('vacancies/', include('vacancies.urls')),
+    path('companies/', include('companies.urls')),
 ]
+
+# просмотр медиа при DEBUG = True
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

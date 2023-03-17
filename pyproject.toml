@@ -9,6 +9,8 @@ packages = [{include = "test_django_1"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 django = "^4.1.7"
+psycopg2-binary = "^2.9.5"
+pillow = "^9.4.0"
 
 
 [build-system]
