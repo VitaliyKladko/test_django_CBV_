@@ -1,10 +1,13 @@
 import json
+
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
+
+from test_django_1 import settings
 from vacancies.models import Vacancy, Skill
 
 
@@ -28,14 +31,29 @@ class VacancyListView(ListView):  # наследуемся от базового
         if search_text is not None:
             self.object_list = self.object_list.filter(text=search_text)
 
+        # # пагинация на 10 элементов списка вручную:
+        # total_vacancy: int = self.object_list.count()  # всего элементов Вакансий
+        # # страница, которую передает нам пользователь, если 'page' не передали, то будем считать, что нужна 1 стр.
+        # page_number = int(request.GET.get('page', 1))
+        # # отступ, просто отступ (на сколько мы отступаем с самого начала, чтобы вытащить следующую страницу)
+        # offset = (page_number - 1) * settings.TOTAL_ON_PAGE
+        # if (page_number - 1) * settings.TOTAL_ON_PAGE < total_vacancy:
+        #     self.object_list = self.object_list[offset:offset+settings.TOTAL_ON_PAGE]
+        # else:
+        #     self.object_list = self.object_list = self.object_list[offset: total_vacancy]
+
         # добавляем сортировку, в качестве аргумента идет поле, по которому будем сортировать
         # если хотим сделать обратную сортировку по алфавиту, то ставим "-" self.object_list.order_by('-text')
         self.object_list = self.object_list.order_by('text')  # первый способ сортировки
 
+        # пагинация с помощью класса Paginator
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-        response = []
-        for vacancy in self.object_list:
-            response.append(
+        vacancies = []
+        for vacancy in page_obj:
+            vacancies.append(
                 {
                     'id': vacancy.id,
                     'slug': vacancy.slug,
@@ -44,6 +62,12 @@ class VacancyListView(ListView):  # наследуемся от базового
                     'created': vacancy.created
                 }
             )
+
+        response = {
+            "items": vacancies,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count,
+        }
         # safe=False позволяет "скушать" JsonResponse словарь, говоря, что ничего не сломается при серриализации и
         # отключи все проверки при переводе в json
         return JsonResponse(response, safe=False)
