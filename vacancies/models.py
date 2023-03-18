@@ -36,6 +36,7 @@ class Vacancy(models.Model):
     class Meta:
         verbose_name = 'Вакансия'  # название модели
         verbose_name_plural = 'Вакансии'  # название модели во множественном числе (отображаются в админке)
+        # ordering = ['-text']  #сортировка по модели
 
     def __str__(self):
         return self.slug

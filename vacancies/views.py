@@ -28,6 +28,11 @@ class VacancyListView(ListView):  # наследуемся от базового
         if search_text is not None:
             self.object_list = self.object_list.filter(text=search_text)
 
+        # добавляем сортировку, в качестве аргумента идет поле, по которому будем сортировать
+        # если хотим сделать обратную сортировку по алфавиту, то ставим "-" self.object_list.order_by('-text')
+        self.object_list = self.object_list.order_by('text')  # первый способ сортировки
+
+
         response = []
         for vacancy in self.object_list:
             response.append(
