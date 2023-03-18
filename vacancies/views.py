@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Avg
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -92,7 +93,9 @@ class VacancyDetailView(DetailView):  # наследуемся от DetailView -
             'slug': vacancy.slug,
             'text': vacancy.text,
             'status': vacancy.status,
-            'created': vacancy.created
+            'created': vacancy.created,
+            'user': vacancy.user_id,
+            'skills': list(vacancy.skills.all().values_list('name', flat=True))
         })
 
 
@@ -109,11 +112,18 @@ class VacancyCreateView(CreateView):
 
         # сохраняем в модель все данные полученные постом от пользователя (create - вызывает save автоматически)
         vacancy = Vacancy.objects.create(
-            user_id=vacancy_data['user_id'],
             slug=vacancy_data['slug'],
             text=vacancy_data['text'],
             status=vacancy_data['status'],
         )
+
+        vacancy.user = get_object_or_404(User, pk=vacancy_data['user_id'])
+
+        for skill in vacancy_data['skills']:
+            skill_obj, created = Skill.objects.get_or_create(name=skill, defaults={'is_active': True})
+            vacancy.skills.add(skill_obj)
+        vacancy.save()
+
         return JsonResponse({
             'id': vacancy.id,
             'slug': vacancy.slug,

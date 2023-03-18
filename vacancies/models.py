@@ -4,6 +4,7 @@ from django.db import models
 
 class Skill(models.Model):
     name = models.CharField(max_length=20)
+    is_active = models.BooleanField(default=True)
 
     # дополнительная информация класс Мета (пример перевода django админки)
     class Meta:
