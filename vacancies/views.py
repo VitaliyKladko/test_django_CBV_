@@ -1,9 +1,12 @@
 import json
 
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.db.models import Count, Avg
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 
@@ -163,3 +166,35 @@ class VacancyDeleteView(DeleteView):
         super().delete(request, *args, **kwargs)  # вызываем родительский метод
 
         return JsonResponse({'status': 'ok'}, status=200)
+
+
+# ручка отдает информацию о том, сколько вакансий опубликовал каждый пользователь
+class UserVacancyDetailView(View):
+    def get(self, request):
+        # query_set объект - он будет создавать запрос в БД, метод annotate добавляет к записи доп. данные о том,
+        # что он сделал
+        # Count - агрегирующая функция и она считает по полю vacancy количество вакансий
+        user_qs = User.objects.annotate(vacancies=Count('vacancy'))
+
+        # пагинация с помощью класса Paginator
+        paginator = Paginator(user_qs, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        users = []
+        for user in page_obj:
+            users.append(
+                {
+                    'id': user.id,
+                    'name': user.username,
+                    'vacancies': user.vacancies,
+                }
+            )
+
+        response = {
+            'items': users,
+            'total': paginator.count,
+            'num_pages': paginator.num_pages,
+            'avg': user_qs.aggregate(Avg('vacancies'))
+        }
+        return JsonResponse(response)
